@@ -1,0 +1,223 @@
+# This is the SAM template that represents the architecture of your serverless application
+# https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-template-basics.html
+
+# The AWSTemplateFormatVersion identifies the capabilities of the template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/format-version-structure.html
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  cql-hl-devdays-demo
+
+# Transform section specifies one or more macros that AWS CloudFormation uses to process your template
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/transform-section-structure.html
+Transform:
+- AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Timeout: 3
+  Api:
+      Cors:
+          AllowMethods: "'GET,POST,OPTIONS'"
+          AllowHeaders: "'*'"
+          AllowOrigin: "'*'"
+
+Parameters:
+
+  HealthLakeDataStoreId:
+    Description: 'The HL datastore id'
+    Type: String
+    Default: ""
+
+  ConditionNotifyTopicName:
+    Type: String
+    Default: ConditionNotifyTopicName
+Resources:
+  # Each Lambda function is defined by properties:
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+
+  cdsDemoServicesFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/handlers
+      Handler: app.get_cds_services
+      Runtime: python3.8
+      Events:
+        
+        Api:
+          Type: Api
+          Properties:
+            Path: /cds-services
+            Method: GET
+
+  patientNotesFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: src/handlers
+      Handler: app.add_patient_notes
+      Runtime: python3.8
+      Timeout: 100
+      Events:
+        CreateNotes:
+          
+          Type: Api
+          Properties:
+            Path: /patient-notes
+            Method: POST
+      Policies:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "healthlake:CreateResource"
+              - "healthlake:UpdateResource"
+            Resource:
+              - "*"
+          
+          -  Effect: Allow
+             Action:
+               - "comprehendmedical:InferSNOMEDCT"
+             Resource:
+               - "*"
+      Environment:
+        Variables:
+          HL_DATASTORE_ID: !Ref HealthLakeDataStoreId
+            
+          
+  # This is a Lambda function config associated with the source code: put-item.js
+  cqlQueryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/handlers
+      Handler: cql-app.runCQLQuery
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: API to execute a CQL(Clinical Quality Language) query that reads FHIR resources from HL
+      Policies:
+        Statement:
+          - Effect: Allow
+            Action:
+              - "healthlake:*"
+            Resource:
+              - "*"      
+      Environment:
+        Variables:
+          HL_DATASTORE_ID: !Ref HealthLakeDataStoreId
+          SMART_APP_ENABLED: false
+          CLOUD9_ENV_ID: REPLACE_WITH_CLOUD9_ENV_ID        
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /cds-services/cql-executor
+            Method: POST
+      
+    Metadata:
+      BuildMethod: makefile
+
+  EBRoleToLogs:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: "myPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "arn:aws:logs:*:*:*"
+
+  SNSConditionNotifyTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Ref ConditionNotifyTopicName
+
+
+  ContagiousConditionRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: "ContagiousConditionRule"
+      Description: "Rule to detect the creation of Condition FHIR Resource"
+      RoleArn: !GetAtt EBRoleToLogs.Arn
+      EventPattern:
+        source:
+          - aws.healthlake
+        detail-type:
+          - "AWS API Call via CloudTrail"
+        detail:
+          eventName:
+            - "CreateResource"
+          requestParameters:
+            resourceType:
+              - "Condition"
+            headers:
+              condition-type:
+                - "Contagious" 
+            
+            
+      State: "ENABLED"
+      Targets:
+        - Arn: !Ref SNSConditionNotifyTopic
+          Id: "SNSConditionNotifyTopic"
+
+        - Arn:
+            Fn::GetAtt:
+              - "ConditionNotifyLogsGroup"
+              - "Arn"
+          Id: "ConditionNotifyLogsGroup"
+
+  ConditionNotifyLogsGroup:
+    Type: AWS::Logs::LogGroup
+    
+    Properties:
+      LogGroupName: /aws/events/condition-notify-event-log
+      RetentionInDays: 30
+
+  ConditionRulePermissionToSNS: 
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: events.amazonaws.com
+          Action: "SNS:Publish"
+          Resource:
+            - !Ref SNSConditionNotifyTopic
+      Topics:
+        - !Ref SNSConditionNotifyTopic
+  
+  # Simple syntax to create a DynamoDB table with a single attribute primary key, more in
+  # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlesssimpletable
+
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  CDSDemoServicesApi:
+    Description: "API Gateway endpoint URL for Prod stage for CDS Hook services"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cds-services"
+
+  CQLQueryExecutionApi:
+    Description: "API Gateway endpoint URL for Prod stage for CQL Execution"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/cds-services/cql-executor"
+  
+  PatientNotesEntryApi:
+    Description: "API Gateway endpoint URL for Prod stage for entering patient notes"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/patient-notes"

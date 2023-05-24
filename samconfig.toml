@@ -1,0 +1,13 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "cql-hl-devdays-demo"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-vuq5jvzma4ou"
+s3_prefix = "cql-hl-devdays-demo"
+region = "us-west-2"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "HealthLakeDataStoreId=\"c7d841228dc95f164865b2d33c47aa39\" ConditionNotifyTopicName=\"ConditionNotifyTopicName\""
+image_repositories = []
+resolve_s3 = true

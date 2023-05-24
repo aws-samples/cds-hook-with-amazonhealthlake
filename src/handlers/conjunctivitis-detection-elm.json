@@ -1,0 +1,144 @@
+{
+    "library": {
+        "annotation": [{
+            "translatorOptions": "",
+            "type": "CqlToElmInfo"
+        }],
+        "identifier": {
+            "id": "LibraryOne",
+            "version": "1.0.0"
+        },
+        "schemaIdentifier": {
+            "id": "urn:hl7-org:elm",
+            "version": "r1"
+        },
+        "usings": {
+            "def": [{
+                    "localIdentifier": "System",
+                    "uri": "urn:hl7-org:elm-types:r1"
+                },
+                {
+                    "localIdentifier": "FHIR",
+                    "uri": "http://hl7.org/fhir",
+                    "version": "4.0.1"
+                }
+            ]
+        },
+        "includes": {
+            "def": [{
+                "localIdentifier": "FHIRHelpers",
+                "path": "FHIRHelpers",
+                "version": "4.0.1"
+            }]
+        },
+        "codeSystems": {
+            "def": [{
+                "name": "SNOMEDCT",
+                "id": "http://snomed.info/sct",
+                "accessLevel": "Public"
+            }]
+        },
+        "codes": {
+            "def": [{
+                    "name": "Red eye (finding)",
+                    "id": "703630003",
+                    "display": "redeye mellitus type 2 (disorder)",
+                    "accessLevel": "Public",
+                    "codeSystem": {
+                        "name": "SNOMEDCT"
+                    }
+                },
+                {
+                    "name": "Discharge from eye (finding)",
+                    "id": "246679005",
+                    "display": "redeye mellitus type 2 (disorder)",
+                    "accessLevel": "Public",
+                    "codeSystem": {
+                        "name": "SNOMEDCT"
+                    }
+                }
+            ]
+        },
+        "contexts": {
+            "def": [{
+                "name": "Patient"
+            }]
+        },
+        "statements": {
+            "def": [{
+                    "name": "Patient",
+                    "context": "Patient",
+                    "expression": {
+                        "type": "SingletonFrom",
+                        "operand": {
+                            "dataType": "{http://hl7.org/fhir}Patient",
+                            "templateId": "http://hl7.org/fhir/StructureDefinition/Patient",
+                            "type": "Retrieve"
+                        }
+                    }
+                },
+                {
+                    "name": "RedEye",
+                    "context": "Patient",
+                    "accessLevel": "Public",
+                    "expression": {
+                        "type": "Exists",
+                        "operand": {
+                            "dataType": "{http://hl7.org/fhir}Condition",
+                            "templateId": "http://hl7.org/fhir/StructureDefinition/Condition",
+                            "codeProperty": "code",
+                            "codeComparator": "~",
+                            "type": "Retrieve",
+                            "codes": {
+                                "type": "ToList",
+                                "operand": {
+                                    "name": "Red eye (finding)",
+                                    "type": "CodeRef"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "EyeDischarge",
+                    "context": "Patient",
+                    "accessLevel": "Public",
+                    "expression": {
+                        "type": "Exists",
+                        "operand": {
+                            "dataType": "{http://hl7.org/fhir}Condition",
+                            "templateId": "http://hl7.org/fhir/StructureDefinition/Condition",
+                            "codeProperty": "code",
+                            "codeComparator": "~",
+                            "type": "Retrieve",
+                            "codes": {
+                                "type": "ToList",
+                                "operand": {
+                                    "name": "Discharge from eye (finding)",
+                                    "type": "CodeRef"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "name": "hasConjunctivitis",
+                    "context": "Patient",
+                    "accessLevel": "Public",
+                    "expression": {
+                        "type": "And",
+                        "operand": [{
+                                "name": "RedEye",
+                                "type": "ExpressionRef"
+                            },
+                            {
+                                "name": "EyeDischarge",
+                                "type": "ExpressionRef"
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}
