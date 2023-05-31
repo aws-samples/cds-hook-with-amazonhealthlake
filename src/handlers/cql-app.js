@@ -228,9 +228,11 @@ exports.runCQLQuery = async(event, context) => {
         https://launch.smarthealthit.org/provider-login?response_type=code&client_id=my_web_app&scope=launch+openid+fhirUser+patient%2F*.read&redirect_uri=https%3A%2F%2F8830894197c046b19702804999c9a269.vfs.cloud9.us-west-2.amazonaws.com%3A8080%2Findex.html&aud=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir&state=W1MdlqBDCt1dCL2G&launch=eyJhIjoiMSJ9&code_challenge=goyKI1OHjs6g0aHmfgciggwvTCxqDKmtE60UxT5-J_k&code_challenge_method=S256&login_type=provider
         //the link below is only for us-west-2 and for demo purpose
         const SMART_APP_URL = 'https://'+CLOUD9_ENV_ID+
-        //'.vfs.cloud9.us-west-2.amazonaws.com:8080/launch.html?launch=eyJhIjoiMSJ9&iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir';
+        '.vfs.cloud9.us-west-2.amazonaws.com:8080/launch.html?launch=eyJhIjoiMSJ9&iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir';
         //the below is for r2
-        '.vfs.cloud9.us-west-2.amazonaws.com:8080/launch.html?launch=WzAsIiIsIiIsIkFVVE8iLDAsMCwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMV0&iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr2%2Ffhir';
+        //'.vfs.cloud9.us-west-2.amazonaws.com:8080/launch.html?launch=WzAsIiIsIiIsIkFVVE8iLDAsMCwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMV0&iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr2%2Ffhir';
+        
+        //the below is example
         //"url": "https://abbd2484e40a4711885cabb895f3303a.vfs.cloud9.us-west-2.amazonaws.com:8080/launch.html?launch=eyJhIjoiMSJ9&iss=https%3A%2F%2Flaunch.smarthealthit.org%2Fv%2Fr4%2Ffhir",
         console.log('Adding SMART Link');
         const smartAppCard = 
