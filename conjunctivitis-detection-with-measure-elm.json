@@ -1,0 +1,317 @@
+{
+  "library": {
+    "annotation": [
+      {
+        "translatorOptions": "",
+        "type": "CqlToElmInfo"
+      },
+      {
+        "libraryId": "LibraryOne",
+        "libraryVersion": "1.0.0",
+        "startLine": 30,
+        "startChar": 28,
+        "endLine": 30,
+        "endChar": 32,
+        "message": "List-valued expression was demoted to a singleton.",
+        "errorType": "semantic",
+        "errorSeverity": "warning",
+        "type": "CqlToElmError"
+      }
+    ],
+    "identifier": {
+      "id": "LibraryOne",
+      "version": "1.0.0"
+    },
+    "schemaIdentifier": {
+      "id": "urn:hl7-org:elm",
+      "version": "r1"
+    },
+    "usings": {
+      "def": [
+        {
+          "localIdentifier": "System",
+          "uri": "urn:hl7-org:elm-types:r1"
+        },
+        {
+          "localIdentifier": "FHIR",
+          "uri": "http://hl7.org/fhir",
+          "version": "4.0.1"
+        }
+      ]
+    },
+    "includes": {
+      "def": [
+        {
+          "localIdentifier": "FHIRHelpers",
+          "path": "FHIRHelpers",
+          "version": "4.0.1"
+        }
+      ]
+    },
+    "codeSystems": {
+      "def": [
+        {
+          "name": "SNOMEDCT",
+          "id": "http://snomed.info/sct",
+          "accessLevel": "Public"
+        }
+      ]
+    },
+    "codes": {
+      "def": [
+        {
+          "name": "Red eye (finding)",
+          "id": "703630003",
+          "display": "redeye mellitus type 2 (disorder)",
+          "accessLevel": "Public",
+          "codeSystem": {
+            "name": "SNOMEDCT"
+          }
+        },
+        {
+          "name": "Discharge from eye (finding)",
+          "id": "246679005",
+          "display": "redeye mellitus type 2 (disorder)",
+          "accessLevel": "Public",
+          "codeSystem": {
+            "name": "SNOMEDCT"
+          }
+        }
+      ]
+    },
+    "contexts": {
+      "def": [
+        {
+          "name": "Patient"
+        }
+      ]
+    },
+    "statements": {
+      "def": [
+        {
+          "name": "Patient",
+          "context": "Patient",
+          "expression": {
+            "type": "SingletonFrom",
+            "operand": {
+              "dataType": "{http://hl7.org/fhir}Patient",
+              "templateId": "http://hl7.org/fhir/StructureDefinition/Patient",
+              "type": "Retrieve"
+            }
+          }
+        },
+        {
+          "name": "RedEye",
+          "context": "Patient",
+          "accessLevel": "Public",
+          "expression": {
+            "type": "Exists",
+            "operand": {
+              "dataType": "{http://hl7.org/fhir}Condition",
+              "templateId": "http://hl7.org/fhir/StructureDefinition/Condition",
+              "codeProperty": "code",
+              "codeComparator": "~",
+              "type": "Retrieve",
+              "codes": {
+                "type": "ToList",
+                "operand": {
+                  "name": "Red eye (finding)",
+                  "type": "CodeRef"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "EyeDischarge",
+          "context": "Patient",
+          "accessLevel": "Public",
+          "expression": {
+            "type": "Exists",
+            "operand": {
+              "dataType": "{http://hl7.org/fhir}Condition",
+              "templateId": "http://hl7.org/fhir/StructureDefinition/Condition",
+              "codeProperty": "code",
+              "codeComparator": "~",
+              "type": "Retrieve",
+              "codes": {
+                "type": "ToList",
+                "operand": {
+                  "name": "Discharge from eye (finding)",
+                  "type": "CodeRef"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "observations",
+          "context": "Patient",
+          "accessLevel": "Public",
+          "expression": {
+            "type": "Query",
+            "source": [
+              {
+                "alias": "O",
+                "expression": {
+                  "dataType": "{http://hl7.org/fhir}Observation",
+                  "templateId": "http://hl7.org/fhir/StructureDefinition/Observation",
+                  "type": "Retrieve"
+                }
+              }
+            ],
+            "relationship": []
+          }
+        },
+        {
+          "name": "isHighRisk",
+          "context": "Patient",
+          "accessLevel": "Public",
+          "expression": {
+            "type": "Equal",
+            "operand": [
+              {
+                "type": "SingletonFrom",
+                "operand": {
+                  "type": "Query",
+                  "source": [
+                    {
+                      "alias": "$this",
+                      "expression": {
+                        "type": "Query",
+                        "source": [
+                          {
+                            "alias": "$this",
+                            "expression": {
+                              "type": "Query",
+                              "source": [
+                                {
+                                  "alias": "$this",
+                                  "expression": {
+                                    "name": "observations",
+                                    "type": "ExpressionRef"
+                                  }
+                                }
+                              ],
+                              "where": {
+                                "type": "Not",
+                                "operand": {
+                                  "type": "IsNull",
+                                  "operand": {
+                                    "path": "value",
+                                    "type": "Property",
+                                    "source": {
+                                      "name": "$this",
+                                      "type": "AliasRef"
+                                    }
+                                  }
+                                }
+                              },
+                              "return": {
+                                "distinct": false,
+                                "expression": {
+                                  "path": "value",
+                                  "type": "Property",
+                                  "source": {
+                                    "name": "$this",
+                                    "type": "AliasRef"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "where": {
+                          "type": "Not",
+                          "operand": {
+                            "type": "IsNull",
+                            "operand": {
+                              "path": "value",
+                              "type": "Property",
+                              "source": {
+                                "name": "$this",
+                                "type": "AliasRef"
+                              }
+                            }
+                          }
+                        },
+                        "return": {
+                          "distinct": false,
+                          "expression": {
+                            "path": "value",
+                            "type": "Property",
+                            "source": {
+                              "name": "$this",
+                              "type": "AliasRef"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ],
+                  "where": {
+                    "type": "Not",
+                    "operand": {
+                      "type": "IsNull",
+                      "operand": {
+                        "path": "value",
+                        "type": "Property",
+                        "source": {
+                          "name": "$this",
+                          "type": "AliasRef"
+                        }
+                      }
+                    }
+                  },
+                  "return": {
+                    "distinct": false,
+                    "expression": {
+                      "path": "value",
+                      "type": "Property",
+                      "source": {
+                        "name": "$this",
+                        "type": "AliasRef"
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "valueType": "{urn:hl7-org:elm-types:r1}Decimal",
+                "value": "6.3",
+                "type": "Literal"
+              }
+            ]
+          }
+        },
+        {
+          "name": "hasConjunctivitis",
+          "context": "Patient",
+          "accessLevel": "Public",
+          "expression": {
+            "type": "And",
+            "operand": [
+              {
+                "type": "And",
+                "operand": [
+                  {
+                    "name": "RedEye",
+                    "type": "ExpressionRef"
+                  },
+                  {
+                    "name": "EyeDischarge",
+                    "type": "ExpressionRef"
+                  }
+                ]
+              },
+              {
+                "name": "isHighRisk",
+                "type": "ExpressionRef"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "resourceType": "Observation",
+  "id": "3bd66ae8-b80c-4ed5-839c-71d19d259ad3",
+  "status": "final",
+  "code": {
+    "coding": [
+      {
+        "code": "15074-8",
+        "system": "http://loinc.org",
+        "display": "Glucose [Moles/volume] in Blood"
+      }
+    ],
+    "text": "glucose level"
+  },
+  "subject": {
+    "reference": "Alice"
+  },
+  "effectiveDateTime": "2018-09-06T14:11:10-07:00",
+  "issued": "2018-09-06T14:11:10.638-07:00",
+  "valueQuantity": {
+    "value": 6.3,
+    "code": "mmol/L",
+    "system": "http://unitsofmeasure.org",
+    "unit": "mmol/l"
+  },
+  "referenceRange": [
+    {
+      "low": {
+        "value": 3.1,
+        "code": "mmol/L",
+        "system": "http://unitsofmeasure.org",
+        "unit": "mmol/l"
+      },
+      "high": {
+        "value": 6.2,
+        "code": "mmol/L",
+        "system": "http://unitsofmeasure.org",
+        "unit": "mmol/l"
+      }
+    }
+  ]
+}
