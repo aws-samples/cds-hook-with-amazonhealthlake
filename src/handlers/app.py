@@ -90,7 +90,10 @@ def add_patient_notes(event, context):
 
     if is_conjuctivitis_symptom:
         print('Creating patient and condition in Healthlake')
-        create_patient_and_condition(patient_json)
+        patient = create_patient_and_condition(patient_json)
+        print('Patient id')
+        print(patient['id'])
+        create_observation(patient)
     # print('Patient JSON')
     # print(patient_json)
     return {
@@ -186,3 +189,68 @@ def create_patient_and_condition(patient):
     hl_response = requests.request('POST', 'https://healthlake.us-west-2.amazonaws.com/datastore/'+hl_datastore_id+'/r4/Condition',
                                    auth=aws_auth, data=json.dumps(condition_resource_red_eye), headers=headers)
     print(hl_response)
+    return patient
+
+
+def create_observation(patient):
+
+    observation_resource = {
+      "resourceType": "Observation",
+      "id": "3bd66ae8-b80c-4ed5-839c-71d19d259ad3",
+      "status": "final",
+      "code": {
+        "coding": [
+          {
+            "code": "15074-8",
+            "system": "http://loinc.org",
+            "display": "Glucose [Moles/volume] in Blood"
+          }
+        ],
+        "text": "glucose level"
+      },
+      "subject": {
+        
+      },
+      "effectiveDateTime": "2018-09-06T14:11:10-07:00",
+      "issued": "2018-09-06T14:11:10.638-07:00",
+      "valueQuantity": {
+        "value": 6.3,
+        "code": "mmol/L",
+        "system": "http://unitsofmeasure.org",
+        "unit": "mmol/l"
+      },
+      "referenceRange": [
+        {
+          "low": {
+            "value": 3.1,
+            "code": "mmol/L",
+            "system": "http://unitsofmeasure.org",
+            "unit": "mmol/l"
+          },
+          "high": {
+            "value": 6.2,
+            "code": "mmol/L",
+            "system": "http://unitsofmeasure.org",
+            "unit": "mmol/l"
+          }
+        }
+      ]
+    }
+
+    headers = {'content-type': 'application/json+fhir'}
+
+    aws_auth = AWSSigV4(service='healthlake', region=os.environ.get('AWS_REGION'),
+                        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+                        aws_secret_access_key=os.environ.get(
+                            'AWS_SECRET_ACCESS_KEY'),
+                        aws_session_token=os.environ.get('AWS_SESSION_TOKEN')
+                        )
+
+    print(patient)
+
+    observation_resource['subject']['reference'] = 'Patient/'+patient['id']
+   
+    hl_response = requests.request('POST', 'https://healthlake.us-west-2.amazonaws.com/datastore/'+hl_datastore_id+'/r4/Observation',
+                                   auth=aws_auth, data=json.dumps(observation_resource), headers=headers)
+    print(hl_response)
+  
