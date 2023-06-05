@@ -27,7 +27,7 @@ define "observations":
        [Observation]O
 
 define isHighRisk:
-  observations.value.value.value = 6.3
+  observations.value.value.value > 6.2
 
 define "hasConjunctivitis":
   RedEye and EyeDischarge and isHighRisk
