@@ -168,7 +168,7 @@
           "context": "Patient",
           "accessLevel": "Public",
           "expression": {
-            "type": "Equal",
+            "type": "Greater",
             "operand": [
               {
                 "type": "SingletonFrom",
@@ -278,7 +278,7 @@
               },
               {
                 "valueType": "{urn:hl7-org:elm-types:r1}Decimal",
-                "value": "6.3",
+                "value": "6.2",
                 "type": "Literal"
               }
             ]
